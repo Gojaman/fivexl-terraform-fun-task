@@ -7,6 +7,7 @@ This repository contains my solution to the **FiveXL Terraform Fun Task**, demon
 ## Overview
 
 The goal of this task is to:
+
 - Explore and implement **multiple AWS website hosting approaches**
 - Use **Terraform exclusively** to provision infrastructure
 - Support **auto redeployment** on content changes
@@ -65,8 +66,8 @@ I implemented **Option A (S3 + CloudFront)** fully and structured the codebase t
 
 The same Terraform codebase is deployed into **two separate AWS accounts**:
 
-- **dev** — development environment
-- **prod** — production environment
+- **dev** — development environment  
+- **prod** — production environment  
 
 Each environment has:
 - Its own AWS account
@@ -83,28 +84,25 @@ Deployment is controlled via AWS CLI profiles:
 AWS_PROFILE=dev
 AWS_PROFILE=prod
 
-Terraform Remote State
+## Terraform Remote State
 
 Remote state is managed using:
-
-S3 for state storage
-
-DynamoDB for state locking
+- **S3** for state storage
+- **DynamoDB** for state locking
 
 State backends are bootstrapped separately per account using:
-
-infra/bootstrap
+- `infra/bootstrap`
 
 This ensures:
+- Safe concurrent Terraform usage
+- Clear separation between environments
+- Production-ready state management
 
-Safe concurrent Terraform usage
+---
 
-Clear separation between environments
+## Repository Structure
 
-Production-ready state management
-
-Repository Structure
-
+```text
 site/                      # Static website files
 infra/
   bootstrap/               # Remote state bootstrap (S3 + DynamoDB)
@@ -116,44 +114,45 @@ infra/
     prod/                  # Prod environment
 .github/workflows/         # CI (optional)
 
-How to Deploy
-1) Bootstrap remote state (per account)
+## How to Deploy
 
+### 1) Bootstrap remote state (per account)
+
+```bash
 cd infra/bootstrap
 export AWS_PROFILE=dev   # or prod
 terraform apply -auto-approve -var="env=dev"   # or env=prod
 
-2) Deploy an environment
+### 2) Deploy an environment
 
+```bash
 cd infra/envs/dev         # or prod
 export AWS_PROFILE=dev
 terraform init -backend-config=backend.hcl
 terraform apply -auto-approve
 
-Auto Redeployment
+## Auto Redeployment
 
-Updating any file in /site and re-running Terraform automatically redeploys the website.
+Updating any file in `/site` and re-running Terraform automatically redeploys the website.
+
 Example:
 
+```bash
 echo "<!-- update -->" >> site/index.html
 terraform apply -auto-approve
 
 The CloudFront endpoint remains stable.
 
-Notes
+---
 
-Root AWS users are used only for account creation and MFA setup.
+## Notes
 
-All infrastructure provisioning is performed using IAM users and Terraform.
+- Root AWS users are used **only** for account creation and MFA setup.
+- All infrastructure provisioning is performed using IAM users and Terraform.
+- The setup mirrors real-world AWS Organizations and multi-account patterns.
 
-The setup mirrors real-world AWS Organizations and multi-account patterns.
+---
 
-Author
+## Author
 
 Nick Gojamanov
-
-
-
-
-
-
