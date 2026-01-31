@@ -37,21 +37,26 @@ I implemented Option A (S3 + CloudFront) fully and structured the codebase to su
 * Auto redeploy: Any change to files in `/site` triggers re-upload via Terraform
 * TLS: Enabled by default with CloudFront
 
-### Option B — ECS Fargate + ALB (Planned)
+### Option B — EC2 + Application Load Balancer (Implemented)
 
-**Use case:** Dynamic websites, SSR apps, APIs
+**Use case:** Simple compute-based websites, dynamic workloads, or legacy-style deployments
 
 **Why this approach:**
-* Supports containerized workloads
-* Rolling deployments and scaling
-* Suitable for dynamic backends
-* Common production setup for modern web apps
+- Common and well-understood production pattern
+- Stable entry point via ALB DNS name
+- Suitable when compute control is required
+- Clear contrast to serverless/static hosting
 
-**Planned architecture:**
-* ECS Fargate service running a containerized web application
-* Application Load Balancer (ALB) as a stable endpoint
-* Optional HTTPS via ACM
-* Redeployments triggered by new container images
+**Architecture:**
+- EC2 instance running Nginx
+- Application Load Balancer (ALB) as the stable endpoint
+- Website content deployed via EC2 user data
+- Terraform-controlled `site_hash` to force instance replacement on content changes
+
+**Key properties:**
+- **Stable endpoint:** ALB DNS name
+- **Auto redeploy:** Changes to `/site` update the hash and trigger instance replacement
+- **TLS:** Can be added via ACM (optional, not enabled here)
 
 ## Environments & Multi-Account Setup
 
@@ -141,4 +146,5 @@ The CloudFront endpoint remains stable.
 ## Author
 
 Nick Gojamanov
+
 
