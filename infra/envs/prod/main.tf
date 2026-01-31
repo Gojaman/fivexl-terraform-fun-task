@@ -18,3 +18,12 @@ module "site_s3_cf" {
   region   = var.region
   site_dir = "${path.module}/../../../site"
 }
+
+module "site_ec2_alb" {
+  source        = "../../modules/site_ec2_alb"
+  name          = "${var.project}-prod-ec2"
+  region        = var.region
+  site_hash     = var.ec2_site_hash
+  instance_type = var.ec2_instance_type
+  ssh_key_name  = var.ec2_ssh_key_name
+}
