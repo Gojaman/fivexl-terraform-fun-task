@@ -1,22 +1,17 @@
 # FiveXL Terraform Fun Task
 
-This repository contains my solution to the **FiveXL Terraform Fun Task**, demonstrating multiple ways to host a website on AWS using **Terraform**, following production-oriented best practices such as remote state, environment separation, and infrastructure as code.
-
----
+This repository contains my solution to the FiveXL Terraform Fun Task, demonstrating multiple ways to host a website on AWS using Terraform, following production-oriented best practices such as remote state, environment separation, and infrastructure as code.
 
 ## Overview
 
 The goal of this task is to:
+* Explore and implement multiple AWS website hosting approaches
+* Use Terraform exclusively to provision infrastructure
+* Support auto redeployment on content changes
+* Ensure stable endpoints
+* Demonstrate multi-account / multi-environment deployment (dev & prod)
 
-- Explore and implement **multiple AWS website hosting approaches**
-- Use **Terraform exclusively** to provision infrastructure
-- Support **auto redeployment** on content changes
-- Ensure **stable endpoints**
-- Demonstrate **multi-account / multi-environment** deployment (dev & prod)
-
-I implemented **Option A (S3 + CloudFront)** fully and structured the codebase to support additional approaches (Option B).
-
----
+I implemented Option A (S3 + CloudFront) fully and structured the codebase to support additional approaches (Option B).
 
 ## Architecture Options
 
@@ -25,84 +20,62 @@ I implemented **Option A (S3 + CloudFront)** fully and structured the codebase t
 **Use case:** Static websites (HTML/CSS/JS)
 
 **Why this approach:**
-- Very low operational overhead
-- Highly scalable and globally distributed (CDN)
-- Built-in HTTPS (TLS) via CloudFront
-- Cost-effective and production-proven
-- Ideal for static content
+* Very low operational overhead
+* Highly scalable and globally distributed (CDN)
+* Built-in HTTPS (TLS) via CloudFront
+* Cost-effective and production-proven
+* Ideal for static content
 
 **Architecture:**
-- Private S3 bucket for website assets
-- CloudFront distribution with Origin Access Control (OAC)
-- Terraform-managed uploads using `aws_s3_object`
-- CloudFront HTTPS endpoint as the stable URL
+* Private S3 bucket for website assets
+* CloudFront distribution with Origin Access Control (OAC)
+* Terraform-managed uploads using `aws_s3_object`
+* CloudFront HTTPS endpoint as the stable URL
 
 **Key properties:**
-- **Stable endpoint:** CloudFront distribution URL
-- **Auto redeploy:** Any change to files in `/site` triggers re-upload via Terraform
-- **TLS:** Enabled by default with CloudFront
-
----
+* Stable endpoint: CloudFront distribution URL
+* Auto redeploy: Any change to files in `/site` triggers re-upload via Terraform
+* TLS: Enabled by default with CloudFront
 
 ### Option B — ECS Fargate + ALB (Planned)
 
 **Use case:** Dynamic websites, SSR apps, APIs
 
 **Why this approach:**
-- Supports containerized workloads
-- Rolling deployments and scaling
-- Suitable for dynamic backends
-- Common production setup for modern web apps
+* Supports containerized workloads
+* Rolling deployments and scaling
+* Suitable for dynamic backends
+* Common production setup for modern web apps
 
 **Planned architecture:**
-- ECS Fargate service running a containerized web application
-- Application Load Balancer (ALB) as a stable endpoint
-- Optional HTTPS via ACM
-- Redeployments triggered by new container images
-
----
+* ECS Fargate service running a containerized web application
+* Application Load Balancer (ALB) as a stable endpoint
+* Optional HTTPS via ACM
+* Redeployments triggered by new container images
 
 ## Environments & Multi-Account Setup
 
-The same Terraform codebase is deployed into **two separate AWS accounts**:
-
-- **dev** — development environment  
-- **prod** — production environment  
+The same Terraform codebase is deployed into two separate AWS accounts:
+* `dev` — development environment
+* `prod` — production environment
 
 Each environment has:
-- Its own AWS account
-- Its own Terraform remote state
-- Its own CloudFront distribution and S3 bucket
+* Its own AWS account
+* Its own Terraform remote state
+* Its own CloudFront distribution and S3 bucket
 
 Environment-specific configuration lives in:
-- `infra/envs/dev`
-- `infra/envs/prod`
+* `infra/envs/dev`
+* `infra/envs/prod`
 
-Deployment is controlled via AWS CLI profiles:
-
-```bash
-AWS_PROFILE=dev
-AWS_PROFILE=prod
+Deployment is controlled via AWS CLI profiles: `AWS_PROFILE=dev` or `AWS_PROFILE=prod`
 
 ## Terraform Remote State
 
-Remote state is managed using:
-- **S3** for state storage
-- **DynamoDB** for state locking
-
-State backends are bootstrapped separately per account using:
-- `infra/bootstrap`
-
-This ensures:
-- Safe concurrent Terraform usage
-- Clear separation between environments
-- Production-ready state management
-
----
+Remote state is managed using S3 for state storage and DynamoDB for state locking. State backends are bootstrapped separately per account using `infra/bootstrap`. This ensures safe concurrent Terraform usage, clear separation between environments, and production-ready state management.
 
 ## Repository Structure
-
-```text
+```
 site/                      # Static website files
 infra/
   bootstrap/               # Remote state bootstrap (S3 + DynamoDB)
@@ -113,45 +86,42 @@ infra/
     dev/                   # Dev environment
     prod/                  # Prod environment
 .github/workflows/         # CI (optional)
+```
 
 ## How to Deploy
 
 ### 1) Bootstrap remote state (per account)
-
-```bash
+```
 cd infra/bootstrap
 export AWS_PROFILE=dev   # or prod
 terraform apply -auto-approve -var="env=dev"   # or env=prod
+```
 
 ### 2) Deploy an environment
-
-```bash
+```
 cd infra/envs/dev         # or prod
 export AWS_PROFILE=dev
 terraform init -backend-config=backend.hcl
 terraform apply -auto-approve
+```
 
 ## Auto Redeployment
 
 Updating any file in `/site` and re-running Terraform automatically redeploys the website.
 
 Example:
-
-```bash
+```
 echo "<!-- update -->" >> site/index.html
 terraform apply -auto-approve
+```
 
 The CloudFront endpoint remains stable.
-
----
 
 ## Notes
 
 - Root AWS users are used **only** for account creation and MFA setup.
 - All infrastructure provisioning is performed using IAM users and Terraform.
 - The setup mirrors real-world AWS Organizations and multi-account patterns.
-
----
 
 ## Author
 
