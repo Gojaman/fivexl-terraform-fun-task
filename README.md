@@ -75,3 +75,12 @@ Each environment has:
 
 Environment-specific configuration lives in:
 
+infra/envs/dev
+infra/envs/prod
+
+Deployment is controlled via AWS CLI profiles:
+
+```bash
+AWS_PROFILE=dev
+AWS_PROFILE=prod
+
