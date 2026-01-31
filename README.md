@@ -117,6 +117,21 @@ terraform apply -auto-approve
 
 The CloudFront endpoint remains stable.
 
+## Results / Endpoints
+
+### DEV account
+- **Option A (S3 + CloudFront):** https://d3c95ggevdn3cr.cloudfront.net  
+- **Option B (EC2 + ALB):** http://fivexl-fun-task-dev-ec2-alb-923249392.us-east-1.elb.amazonaws.com  
+
+### PROD account
+- **Option A (S3 + CloudFront):** https://d2xbyceaz6woe.cloudfront.net  
+- **Option B (EC2 + ALB):** http://fivexl-fun-task-prod-ec2-alb-861835306.us-east-1.elb.amazonaws.com  
+
+### Redeploy behavior
+- **Option A:** updating files in `/site` → `terraform apply` uploads new objects to S3; CloudFront URL stays stable.  
+- **Option B:** updating files in `/site` → `terraform apply` updates user-data/site hash and replaces the instance if needed; ALB DNS name stays stable.
+
+
 ## Notes
 
 - Root AWS users are used **only** for account creation and MFA setup.
@@ -126,3 +141,4 @@ The CloudFront endpoint remains stable.
 ## Author
 
 Nick Gojamanov
+
